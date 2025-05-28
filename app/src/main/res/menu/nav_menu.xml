@@ -2,6 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_api_key"
-        android:title="Manage API Key"
+        android:title="Perplexity API Key"
+        android:icon="@drawable/ic_key"/>
+    <item
+        android:id="@+id/nav_api_key_grok"
+        android:title="Grok API Key"
         android:icon="@drawable/ic_key"/>
 </menu>
