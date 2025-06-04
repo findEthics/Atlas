@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ProgressBar
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +18,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,21 +28,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var queryInput: EditText
     private lateinit var sendButton: ImageButton
-    private lateinit var resetFab: FloatingActionButton
+    private lateinit var resetButton: ImageButton
     private lateinit var titleText: TextView
     private lateinit var adapter: MessageAdapter
     private val messages = mutableListOf<Message>()
-    private lateinit var perplexityClient: PerplexityClient
-
+    private var currentModel = AIModel.ATLAS
+    private lateinit var aiClient: AIClient
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
     private lateinit var toolbar: Toolbar
+    private lateinit var loadingProgressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        perplexityClient = PerplexityClient()
+        aiClient = AIClient()
         initializeViews()
         setupRecyclerView()
 
@@ -58,17 +60,19 @@ class MainActivity : AppCompatActivity() {
 
         setupClickListeners()
 
+        setupModelSwitch()
     }
 
     private fun initializeViews() {
         recyclerView = findViewById(R.id.messagesRecycler)
         queryInput = findViewById(R.id.queryInput)
         sendButton = findViewById(R.id.sendButton)
-        resetFab = findViewById(R.id.resetFab)
+        resetButton = findViewById(R.id.resetButton)
         titleText = findViewById(R.id.titleText)
         drawerLayout = findViewById(R.id.drawer_layout)
         navView = findViewById(R.id.nav_view)
         toolbar = findViewById(R.id.toolbar)
+        loadingProgressBar = findViewById(R.id.loadingProgressBar)
     }
 
     private fun setupRecyclerView() {
@@ -85,15 +89,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        resetFab.setOnClickListener {
+        resetButton.setOnClickListener {
             resetSession()
         }
 
         // Handle navigation item clicks
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.nav_api_key -> {
-                    showApiKeyDialog("")
+                R.id.nav_api_key_perplexity -> {
+                    showApiKeyDialog(AIModel.PERPLEXITY)
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
@@ -102,57 +106,93 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupModelSwitch() {
+        val modelSwitchButton = findViewById<Button>(R.id.modelSwitch)
+        modelSwitchButton.text = currentModel.name
+
+        modelSwitchButton.setOnClickListener {
+            currentModel = when (currentModel) {
+                AIModel.PERPLEXITY -> AIModel.ATLAS
+                AIModel.ATLAS -> AIModel.PERPLEXITY
+            }
+            modelSwitchButton.text = currentModel.name
+            // Optional: You might want to show a Toast or log the change
+            Toast.makeText(this, "Switched to ${currentModel.name}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun handleQuery(query: String) {
-        val apiKey = perplexityClient.loadApiKey(this)
-        if (apiKey.isEmpty()) {
-            showApiKeyDialog(query)
+        loadingProgressBar.visibility = View.VISIBLE
+        sendButton.isEnabled = false
+        val apiKey = aiClient.loadApiKey(this, currentModel)
+        if (apiKey.isEmpty() && currentModel != AIModel.ATLAS) {
+            showApiKeyDialog(currentModel)
+            loadingProgressBar.visibility = View.GONE
+            sendButton.isEnabled = true
         } else {
+            println("handleQuery")
             sendQueryToApi(query, apiKey)
         }
     }
 
     private fun sendQueryToApi(query: String, apiKey: String) {
         CoroutineScope(Dispatchers.IO).launch {
+            println(currentModel)
             try {
-                val response = perplexityClient.query(query, apiKey)
+                // Get the current model selection
+                val response = when (currentModel) { // Use the class property currentModel
+                    AIModel.PERPLEXITY -> aiClient.queryPerplexity(query, apiKey)
+                    AIModel.ATLAS -> aiClient.queryEthicsAtlas(query)
+                }
                 withContext(Dispatchers.Main) {
                     updateUIWithResponse(query, response)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    val errorMsg = when (e) {
+                        is IllegalArgumentException -> "Invalid API key"
+                        else -> "API error: ${e.localizedMessage}"
+                    }
                     println("sendQueryToApi ${e.message}")
-                    Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                    loadingProgressBar.visibility = View.GONE
+                    sendButton.isEnabled = true
                 }
             }
         }
     }
 
     private fun updateUIWithResponse(query: String, response: String) {
+        loadingProgressBar.visibility = View.GONE
+        sendButton.isEnabled = true
+        titleText.visibility = View.GONE
         messages.add(Message(query, response))
         adapter.notifyItemInserted(messages.size - 1)
         recyclerView.smoothScrollToPosition(messages.size - 1)
         queryInput.text.clear()
-        titleText.visibility = View.GONE
-        resetFab.visibility = View.VISIBLE
+        resetButton.visibility = View.VISIBLE
     }
 
-    private fun showApiKeyDialog(pendingQuery: String) {
+    private fun showApiKeyDialog(model: AIModel) {
+        loadingProgressBar.visibility = View.GONE
+        sendButton.isEnabled = true
         val input = EditText(this)
+        input.hint = "Enter API Key for ${model.name}"
         AlertDialog.Builder(this)
-            .setTitle("API Key Required")
-            .setMessage("Enter your Perplexity API key:")
+            .setTitle("${model.name} API Key")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
-                val apiKey = input.text.toString().trim()
-                if (apiKey.isNotEmpty()) {
-                    perplexityClient.saveApiKey(this, apiKey)
-                    Toast.makeText(this, "API Key Saved", Toast.LENGTH_SHORT).show()
-                    if(pendingQuery.isNotEmpty()) {
-                        sendQueryToApi(pendingQuery, apiKey)
-                    }
+                val key = input.text.toString().trim()
+                if (key.isNotEmpty()) {
+                    aiClient.saveApiKey(this, key, model)
+                    Toast.makeText(this, "API Key for ${model.name} saved.", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "API Key cannot be empty.", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
             .show()
     }
 
@@ -160,7 +200,9 @@ class MainActivity : AppCompatActivity() {
         messages.clear()
         adapter.notifyDataSetChanged()
         titleText.visibility = View.VISIBLE
-        resetFab.visibility = View.GONE
+        resetButton.visibility = View.GONE
+        loadingProgressBar.visibility = View.GONE
+        sendButton.isEnabled = true
     }
 
     inner class MessageAdapter(private val messages: List<Message>) :
