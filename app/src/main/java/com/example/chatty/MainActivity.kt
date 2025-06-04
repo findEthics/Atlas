@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var titleText: TextView
     private lateinit var adapter: MessageAdapter
     private val messages = mutableListOf<Message>()
-    private var currentModel = AIModel.HUGGING_FACE
+    private var currentModel = AIModel.ATLAS
     private lateinit var aiClient: AIClient
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
@@ -101,16 +101,6 @@ class MainActivity : AppCompatActivity() {
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
-                R.id.nav_api_key_grok -> {
-                    showApiKeyDialog(AIModel.GROK)
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                    true
-                }
-                R.id.nav_api_key_hugging -> {
-                    showApiKeyDialog(AIModel.HUGGING_FACE)
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                    true
-                }
                 else -> false
             }
         }
@@ -122,9 +112,8 @@ class MainActivity : AppCompatActivity() {
 
         modelSwitchButton.setOnClickListener {
             currentModel = when (currentModel) {
-                AIModel.PERPLEXITY -> AIModel.GROK
-                AIModel.GROK -> AIModel.HUGGING_FACE
-                AIModel.HUGGING_FACE -> AIModel.PERPLEXITY
+                AIModel.PERPLEXITY -> AIModel.ATLAS
+                AIModel.ATLAS -> AIModel.PERPLEXITY
             }
             modelSwitchButton.text = currentModel.name
             // Optional: You might want to show a Toast or log the change
@@ -136,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         loadingProgressBar.visibility = View.VISIBLE
         sendButton.isEnabled = false
         val apiKey = aiClient.loadApiKey(this, currentModel)
-        if (apiKey.isEmpty() && currentModel != AIModel.HUGGING_FACE) {
+        if (apiKey.isEmpty() && currentModel != AIModel.ATLAS) {
             showApiKeyDialog(currentModel)
             loadingProgressBar.visibility = View.GONE
             sendButton.isEnabled = true
@@ -153,9 +142,7 @@ class MainActivity : AppCompatActivity() {
                 // Get the current model selection
                 val response = when (currentModel) { // Use the class property currentModel
                     AIModel.PERPLEXITY -> aiClient.queryPerplexity(query, apiKey)
-                    AIModel.GROK -> aiClient.queryGrok(query, apiKey)
-//                    AIModel.HUGGING_FACE -> aiClient.queryHuggingFace(query, apiKey)
-                    AIModel.HUGGING_FACE -> aiClient.queryEthicsAtlas(query)
+                    AIModel.ATLAS -> aiClient.queryEthicsAtlas(query)
                 }
                 withContext(Dispatchers.Main) {
                     updateUIWithResponse(query, response)
