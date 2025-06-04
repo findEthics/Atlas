@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var titleText: TextView
     private lateinit var adapter: MessageAdapter
     private val messages = mutableListOf<Message>()
-    private var currentModel = AIModel.PERPLEXITY
+    private var currentModel = AIModel.HUGGING_FACE
     private lateinit var aiClient: AIClient
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
@@ -96,8 +96,18 @@ class MainActivity : AppCompatActivity() {
         // Handle navigation item clicks
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.nav_api_key -> {
-                    showApiKeyDialog(currentModel)
+                R.id.nav_api_key_perplexity -> {
+                    showApiKeyDialog(AIModel.PERPLEXITY)
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                R.id.nav_api_key_grok -> {
+                    showApiKeyDialog(AIModel.GROK)
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                R.id.nav_api_key_hugging -> {
+                    showApiKeyDialog(AIModel.HUGGING_FACE)
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
@@ -107,42 +117,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupModelSwitch() {
-        val modelSwitch = findViewById<Button>(R.id.modelSwitch)
-        modelSwitch.setOnClickListener {
-            currentModel = if (currentModel == AIModel.PERPLEXITY) {
-                AIModel.GROK
-            } else {
-                AIModel.PERPLEXITY
+        val modelSwitchButton = findViewById<Button>(R.id.modelSwitch)
+        modelSwitchButton.text = currentModel.name
+
+        modelSwitchButton.setOnClickListener {
+            currentModel = when (currentModel) {
+                AIModel.PERPLEXITY -> AIModel.GROK
+                AIModel.GROK -> AIModel.HUGGING_FACE
+                AIModel.HUGGING_FACE -> AIModel.PERPLEXITY
             }
-            modelSwitch.text = currentModel.name
+            modelSwitchButton.text = currentModel.name
+            // Optional: You might want to show a Toast or log the change
+            Toast.makeText(this, "Switched to ${currentModel.name}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun handleQuery(query: String) {
         loadingProgressBar.visibility = View.VISIBLE
         sendButton.isEnabled = false
-        val apiKey = when(currentModel) {
-            AIModel.PERPLEXITY -> aiClient.loadApiKey(this, AIModel.PERPLEXITY)
-            AIModel.GROK -> aiClient.loadApiKey(this, AIModel.GROK)
-        }
-        if (apiKey.isEmpty()) {
+        val apiKey = aiClient.loadApiKey(this, currentModel)
+        if (apiKey.isEmpty() && currentModel != AIModel.HUGGING_FACE) {
             showApiKeyDialog(currentModel)
             loadingProgressBar.visibility = View.GONE
             sendButton.isEnabled = true
         } else {
+            println("handleQuery")
             sendQueryToApi(query, apiKey)
         }
     }
 
     private fun sendQueryToApi(query: String, apiKey: String) {
         CoroutineScope(Dispatchers.IO).launch {
+            println(currentModel)
             try {
                 // Get the current model selection
-                val model = currentModel
-                // Execute the API call for the selected model
-                val response = when (model) {
+                val response = when (currentModel) { // Use the class property currentModel
                     AIModel.PERPLEXITY -> aiClient.queryPerplexity(query, apiKey)
                     AIModel.GROK -> aiClient.queryGrok(query, apiKey)
+//                    AIModel.HUGGING_FACE -> aiClient.queryHuggingFace(query, apiKey)
+                    AIModel.HUGGING_FACE -> aiClient.queryEthicsAtlas(query)
                 }
                 withContext(Dispatchers.Main) {
                     updateUIWithResponse(query, response)
@@ -177,6 +190,7 @@ class MainActivity : AppCompatActivity() {
         loadingProgressBar.visibility = View.GONE
         sendButton.isEnabled = true
         val input = EditText(this)
+        input.hint = "Enter API Key for ${model.name}"
         AlertDialog.Builder(this)
             .setTitle("${model.name} API Key")
             .setView(input)
@@ -184,7 +198,13 @@ class MainActivity : AppCompatActivity() {
                 val key = input.text.toString().trim()
                 if (key.isNotEmpty()) {
                     aiClient.saveApiKey(this, key, model)
+                    Toast.makeText(this, "API Key for ${model.name} saved.", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "API Key cannot be empty.", Toast.LENGTH_SHORT).show()
                 }
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
             }
             .show()
     }

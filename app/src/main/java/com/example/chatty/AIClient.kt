@@ -3,6 +3,9 @@ package com.example.chatty
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.chatty.data.HuggingFaceParameters
+import com.example.chatty.data.HuggingFaceTextGenerationRequest
+import com.example.chatty.data.HuggingFaceTextGenerationResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -12,6 +15,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 class AIClient {
@@ -26,6 +30,9 @@ class AIClient {
         }
     }
 
+    // Replace with your chosen Hugging Face model ID
+    private val HUGGING_FACE_API_URL = "https://findEthics-Atlas.hf.space/"
+
     suspend fun queryPerplexity(prompt: String, apiKey: String): String {
                 val response = client.post("https://api.perplexity.ai/chat/completions") {
                     headers {
@@ -34,8 +41,8 @@ class AIClient {
                     contentType(ContentType.Application.Json)
                     setBody(
                         PerplexityRequest(
-                            model = "sonar-pro",
-                            messages = listOf(MessageContent("user", prompt))
+                            model = "sonar",
+                            messages = listOf(MessageContent("user", "Answer concisely: $prompt"))
                         )
                     )
                 }
@@ -61,6 +68,43 @@ class AIClient {
             in 200..299 -> response.body<GrokResponse>().choices.first().message.content
             else -> throw Exception("API request failed: ${response.status}")
         }
+    }
+
+    suspend fun queryHuggingFace(prompt: String, apiKey: String): String {
+        println(HUGGING_FACE_API_URL)
+        val response = client.post(HUGGING_FACE_API_URL) {
+            headers {
+                append("Authorization", "Bearer $apiKey")
+            }
+            contentType(ContentType.Application.Json)
+            setBody(
+                HuggingFaceTextGenerationRequest(
+                    inputs = prompt,
+                    parameters = HuggingFaceParameters(maxNewTokens = 500, returnFullText = false) // Customize as needed
+                )
+            )
+        }
+        return when (response.status.value) {
+            in 200..299 -> {
+                // HuggingFace often returns a list with one item for this kind of task
+                val resultList = response.body<List<HuggingFaceTextGenerationResponse>>()
+                resultList.firstOrNull()?.generatedText ?: throw Exception("Hugging Face response empty")
+            }
+            else -> throw Exception("Hugging Face API request failed: ${response.status} - ${response.body<String>()}")
+        }
+    }
+
+    suspend fun queryEthicsAtlas(prompt: String): String {
+
+            val response = client.post("https://findEthics-Atlas.hf.space/chat") {
+                contentType(ContentType.Application.Json)
+                setBody(AtlasRequest(prompt = prompt, use_search = true))
+            }
+
+            return when (response.status.value) {
+                in 200..299 -> response.body<AtlasResponse>().response
+                else -> throw Exception("Atlas API request failed: ${response.status}")
+            }
     }
 
     // Update storage methods to handle multiple keys

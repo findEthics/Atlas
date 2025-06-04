@@ -28,7 +28,7 @@
                 android:id="@+id/titleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chatty"
+                android:text="What?"
                 android:textSize="24sp"
                 android:textColor="@android:color/black"
                 app:layout_constraintTop_toBottomOf="@id/toolbar"
@@ -102,7 +102,7 @@
                     android:id="@+id/modelSwitch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Perplexity"
+                    android:text="HUGGING_FACE"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp" />
 
