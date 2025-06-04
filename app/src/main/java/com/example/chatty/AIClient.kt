@@ -62,7 +62,6 @@ class AIClient {
             }
     }
 
-    // Update storage methods to handle multiple keys
     fun loadApiKey(context: Context, model: AIModel): String {
         val prefs = getEncryptedPrefs(context)
         return prefs.getString(model.name, "") ?: ""
