@@ -28,7 +28,7 @@
                 android:id="@+id/titleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="What?"
+                android:text="What? 😒"
                 android:textSize="24sp"
                 android:textColor="@android:color/black"
                 app:layout_constraintTop_toBottomOf="@id/toolbar"
@@ -36,12 +36,13 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="16dp"/>
 
-            <!-- Loading ProgressBar -->
-            <ProgressBar
+            <!-- Loading TextView -->
+            <TextView
                 android:id="@+id/loadingProgressBar"
-                style="?android:attr/progressBarStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Looking... 🙄"
+                android:textSize="18sp"
                 android:visibility="gone"
                 app:layout_constraintTop_toBottomOf="@id/titleText"
                 app:layout_constraintStart_toStartOf="parent"
