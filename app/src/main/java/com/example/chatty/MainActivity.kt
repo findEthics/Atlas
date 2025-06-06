@@ -9,7 +9,6 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.ProgressBar
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -37,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
     private lateinit var toolbar: Toolbar
-    private lateinit var loadingProgressBar: ProgressBar
+    private lateinit var loadingProgressBar: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,6 +122,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleQuery(query: String) {
         loadingProgressBar.visibility = View.VISIBLE
+        titleText.visibility = View.GONE
         sendButton.isEnabled = false
         val apiKey = aiClient.loadApiKey(this, currentModel)
         if (apiKey.isEmpty() && currentModel != AIModel.ATLAS) {
