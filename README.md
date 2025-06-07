@@ -1,6 +1,6 @@
 # Atlas 💬
 
-Atlas is an Android application designed for quick searches and online look ups.
+Atlas is an Android application designed for quick online searches.
 
 ## Features
 
