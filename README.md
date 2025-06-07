@@ -1,6 +1,6 @@
-# Chatty 💬
+# Atlas 💬
 
-Chatty is an Android application designed for quick searches and online look ups.
+Atlas is an Android application designed for quick searches and online look ups.
 
 ## Features
 
