@@ -22,7 +22,7 @@ Chatty is an Android application designed for quick searches and online look ups
 
 * Home Screen
 
-![image](https://github.com/user-attachments/assets/5b449bf5-6fa5-4496-a5b8-d074b0d25bfe)
+<img src="screenshots/Atlas - Home Screen.png" width="350" alt="Home Screen">
 
 * Search screen
 
