@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var aiClient: AIClient
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
-    private lateinit var toolbar: Toolbar
     private lateinit var loadingProgressBar: TextView
     private lateinit var themePrefs: SharedPreferences
     private lateinit var darkModeSwitch: SwitchCompat
@@ -67,8 +65,6 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
 
         // Setup navigation drawer (without automatic toggle)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupClickListeners()
 
@@ -83,7 +79,6 @@ class MainActivity : AppCompatActivity() {
         titleText = findViewById(R.id.titleText)
         drawerLayout = findViewById(R.id.drawer_layout)
         navView = findViewById(R.id.nav_view)
-        toolbar = findViewById(R.id.toolbar)
         loadingProgressBar = findViewById(R.id.loadingProgressBar)
         
         // Initialize dark mode switch from navigation header
