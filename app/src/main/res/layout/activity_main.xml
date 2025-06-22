@@ -45,31 +45,35 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:tint="?android:attr/textColorPrimary"/>
 
-                <!-- Title Text -->
-                <TextView
-                    android:id="@+id/titleText"
+                <!-- Title Container for both states -->
+                <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="What? 😒"
-                    android:textSize="24sp"
-                    android:textColor="?android:attr/textColorPrimary"/>
+                    android:layout_centerInParent="true">
+
+                    <!-- Title Text -->
+                    <TextView
+                        android:id="@+id/titleText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="What? 😒"
+                        android:textSize="24sp"
+                        android:textColor="?android:attr/textColorPrimary"/>
+
+                    <!-- Loading TextView -->
+                    <TextView
+                        android:id="@+id/loadingProgressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Wait, I'm looking..🙄"
+                        android:textSize="18sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:visibility="gone"/>
+
+                </FrameLayout>
 
             </RelativeLayout>
 
-            <!-- Loading TextView -->
-            <TextView
-                android:id="@+id/loadingProgressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Wait, I’m looking..🙄"
-                android:textSize="18sp"
-                android:textColor="?android:attr/textColorSecondary"
-                android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/headerLayout"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="8dp" />
 
             <!-- Messages RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView

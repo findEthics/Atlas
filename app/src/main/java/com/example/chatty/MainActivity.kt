@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
 
         // Setup navigation drawer (without automatic toggle)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupClickListeners()
 
@@ -227,7 +228,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateUIWithResponse(query: String, response: String) {
         loadingProgressBar.visibility = View.GONE
         sendButton.isEnabled = true
-        titleText.visibility = View.GONE
+        titleText.visibility = View.VISIBLE
         
         // Update the last message with the response
         if (messages.isNotEmpty()) {
