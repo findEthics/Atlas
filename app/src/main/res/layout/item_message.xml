@@ -9,7 +9,7 @@
         android:id="@+id/queryText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp"
         android:textStyle="bold"/>
 
@@ -17,7 +17,7 @@
         android:id="@+id/responseText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
+        android:textColor="?android:attr/textColorSecondary"
         android:textSize="18sp"
         android:layout_marginTop="4dp"/>
 

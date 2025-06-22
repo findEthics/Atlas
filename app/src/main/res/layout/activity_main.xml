@@ -16,8 +16,8 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@android:color/white"
-                app:titleTextColor="@android:color/black"
+                android:background="?android:attr/windowBackground"
+                app:titleTextColor="?android:attr/textColorPrimary"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:text="What? 😒"
                 android:textSize="24sp"
-                android:textColor="@android:color/black"
+                android:textColor="?android:attr/textColorPrimary"
                 app:layout_constraintTop_toBottomOf="@id/toolbar"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -43,6 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="Wait, I’m looking..🙄"
                 android:textSize="18sp"
+                android:textColor="?android:attr/textColorSecondary"
                 android:visibility="gone"
                 app:layout_constraintTop_toBottomOf="@id/titleText"
                 app:layout_constraintStart_toStartOf="parent"
@@ -96,16 +97,21 @@
                     android:src="@drawable/ic_refresh"
                     android:contentDescription="Refresh session"
                     android:visibility="gone"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="?attr/colorPrimary"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:tint="?attr/colorOnPrimary"
+                    android:layout_marginEnd="8dp"
                     />
 
                 <Button
                     android:id="@+id/modelSwitch"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:text="HUGGING_FACE"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:textColor="?attr/colorOnPrimary" />
 
                 <ImageButton
                     android:id="@+id/sendButton"
@@ -113,7 +119,9 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_send"
                     android:contentDescription="Send Query"
-                    android:background="?attr/selectableItemBackgroundBorderless"/>
+                    android:background="?attr/colorPrimary"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:tint="?attr/colorOnPrimary"/>
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

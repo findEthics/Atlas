@@ -1,6 +1,8 @@
 package com.example.chatty
 
+import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.core.content.edit
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +12,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -37,9 +40,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navView: NavigationView
     private lateinit var toolbar: Toolbar
     private lateinit var loadingProgressBar: TextView
+    private lateinit var themePrefs: SharedPreferences
+    private lateinit var darkModeSwitch: SwitchCompat
+
+    companion object {
+        private const val THEME_PREFS = "theme_prefs"
+        private const val KEY_DARK_MODE = "dark_mode"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize theme preferences
+        themePrefs = getSharedPreferences(THEME_PREFS, MODE_PRIVATE)
+        applyTheme()
+        
         setContentView(R.layout.activity_main)
 
         aiClient = AIClient()
@@ -72,6 +87,10 @@ class MainActivity : AppCompatActivity() {
         navView = findViewById(R.id.nav_view)
         toolbar = findViewById(R.id.toolbar)
         loadingProgressBar = findViewById(R.id.loadingProgressBar)
+        
+        // Initialize dark mode switch from navigation header
+        val headerView = navView.getHeaderView(0)
+        darkModeSwitch = headerView.findViewById(R.id.darkModeSwitch)
     }
 
     private fun setupRecyclerView() {
@@ -103,6 +122,9 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+        
+        // Setup dark mode switch
+        setupDarkModeSwitch()
     }
 
     private fun setupModelSwitch() {
@@ -254,6 +276,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun getItemCount() = messages.size
+    }
+
+    private fun applyTheme() {
+        val isDarkMode = themePrefs.getBoolean(KEY_DARK_MODE, false)
+        if (isDarkMode) {
+            setTheme(R.style.Theme_Chatty_Dark)
+        } else {
+            setTheme(R.style.Theme_Chatty)
+        }
+    }
+
+    private fun setupDarkModeSwitch() {
+        val isDarkMode = themePrefs.getBoolean(KEY_DARK_MODE, false)
+        darkModeSwitch.isChecked = isDarkMode
+        
+        darkModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            themePrefs.edit {
+                putBoolean(KEY_DARK_MODE, isChecked)
+            }
+            // Recreate activity to apply new theme
+            recreate()
+        }
     }
 }
 
