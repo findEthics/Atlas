@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Font sizes for Small setting (14sp) -->
+    <dimen name="title_text_size_small">14sp</dimen>
+    <dimen name="loading_text_size_small">14sp</dimen>
+    <dimen name="query_text_size_small">14sp</dimen>
+    <dimen name="response_text_size_small">14sp</dimen>
+    
+    <!-- Font sizes for Regular setting (18sp) -->
+    <dimen name="title_text_size_regular">18sp</dimen>
+    <dimen name="loading_text_size_regular">18sp</dimen>
+    <dimen name="query_text_size_regular">18sp</dimen>
+    <dimen name="response_text_size_regular">18sp</dimen>
+    
+    <!-- Font sizes for Large setting (22sp) -->
+    <dimen name="title_text_size_large">22sp</dimen>
+    <dimen name="loading_text_size_large">22sp</dimen>
+    <dimen name="query_text_size_large">22sp</dimen>
+    <dimen name="response_text_size_large">22sp</dimen>
+</resources>

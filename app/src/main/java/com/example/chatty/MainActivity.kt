@@ -46,6 +46,11 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val THEME_PREFS = "theme_prefs"
         private const val KEY_DARK_MODE = "dark_mode"
+        private const val KEY_FONT_SIZE = "font_size"
+    }
+    
+    enum class FontSize {
+        SMALL, REGULAR, LARGE
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,12 +124,20 @@ class MainActivity : AppCompatActivity() {
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
+                R.id.nav_font_size -> {
+                    showFontSizeDialog()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
                 else -> false
             }
         }
         
         // Setup dark mode switch
         setupDarkModeSwitch()
+        
+        // Apply current font size
+        applyFontSize()
     }
 
     private fun setupModelSwitch() {
@@ -273,6 +286,10 @@ class MainActivity : AppCompatActivity() {
             val message = messages[position]
             holder.queryText.text = message.query
             holder.responseText.text = message.response
+            
+            // Apply dynamic font sizes
+            holder.queryText.textSize = getQueryTextSize()
+            holder.responseText.textSize = getResponseTextSize()
         }
 
         override fun getItemCount() = messages.size
@@ -297,6 +314,86 @@ class MainActivity : AppCompatActivity() {
             }
             // Recreate activity to apply new theme
             recreate()
+        }
+    }
+
+    private fun showFontSizeDialog() {
+        val currentFontSize = getCurrentFontSize()
+        val fontSizeOptions = arrayOf("Small", "Regular", "Large")
+        val currentSelection = when (currentFontSize) {
+            FontSize.SMALL -> 0
+            FontSize.REGULAR -> 1
+            FontSize.LARGE -> 2
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Font Size")
+            .setSingleChoiceItems(fontSizeOptions, currentSelection) { dialog, which ->
+                val selectedFontSize = when (which) {
+                    0 -> FontSize.SMALL
+                    1 -> FontSize.REGULAR
+                    2 -> FontSize.LARGE
+                    else -> FontSize.REGULAR
+                }
+                saveFontSize(selectedFontSize)
+                applyFontSize()
+                dialog.dismiss()
+                Toast.makeText(this, "Font size updated to ${fontSizeOptions[which]}", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun getCurrentFontSize(): FontSize {
+        val fontSizeName = themePrefs.getString(KEY_FONT_SIZE, FontSize.REGULAR.name)
+        return FontSize.valueOf(fontSizeName ?: FontSize.REGULAR.name)
+    }
+
+    private fun saveFontSize(fontSize: FontSize) {
+        themePrefs.edit {
+            putString(KEY_FONT_SIZE, fontSize.name)
+        }
+    }
+
+    private fun applyFontSize() {
+        val fontSize = getCurrentFontSize()
+        
+        when (fontSize) {
+            FontSize.SMALL -> {
+                titleText.textSize = 14f
+                loadingProgressBar.textSize = 14f
+            }
+            FontSize.REGULAR -> {
+                titleText.textSize = 18f
+                loadingProgressBar.textSize = 18f
+            }
+            FontSize.LARGE -> {
+                titleText.textSize = 22f
+                loadingProgressBar.textSize = 22f
+            }
+        }
+        
+        // Update adapter to refresh message text sizes
+        adapter.notifyItemRangeChanged(0, messages.size)
+    }
+
+    fun getQueryTextSize(): Float {
+        val fontSize = getCurrentFontSize()
+        return when (fontSize) {
+            FontSize.SMALL -> 14f
+            FontSize.REGULAR -> 18f
+            FontSize.LARGE -> 22f
+        }
+    }
+
+    fun getResponseTextSize(): Float {
+        val fontSize = getCurrentFontSize()
+        return when (fontSize) {
+            FontSize.SMALL -> 14f
+            FontSize.REGULAR -> 18f
+            FontSize.LARGE -> 22f
         }
     }
 }
