@@ -11,7 +11,6 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadingProgressBar: TextView
     private lateinit var themePrefs: SharedPreferences
     private lateinit var darkModeSwitch: SwitchCompat
+    private lateinit var customNavToggle: ImageButton
 
     companion object {
         private const val THEME_PREFS = "theme_prefs"
@@ -66,16 +66,8 @@ class MainActivity : AppCompatActivity() {
         initializeViews()
         setupRecyclerView()
 
-        // Setup navigation drawer
-        val toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
+        // Setup navigation drawer (without automatic toggle)
+        setSupportActionBar(toolbar)
 
         setupClickListeners()
 
@@ -96,6 +88,9 @@ class MainActivity : AppCompatActivity() {
         // Initialize dark mode switch from navigation header
         val headerView = navView.getHeaderView(0)
         darkModeSwitch = headerView.findViewById(R.id.darkModeSwitch)
+        
+        // Initialize custom navigation toggle
+        customNavToggle = findViewById(R.id.customNavToggle)
     }
 
     private fun setupRecyclerView() {
@@ -114,6 +109,15 @@ class MainActivity : AppCompatActivity() {
 
         resetButton.setOnClickListener {
             resetSession()
+        }
+        
+        // Setup custom navigation toggle
+        customNavToggle.setOnClickListener {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
         }
 
         // Handle navigation item clicks
