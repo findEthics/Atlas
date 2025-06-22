@@ -3,9 +3,6 @@ package com.example.chatty
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.example.chatty.data.HuggingFaceParameters
-import com.example.chatty.data.HuggingFaceTextGenerationRequest
-import com.example.chatty.data.HuggingFaceTextGenerationResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
