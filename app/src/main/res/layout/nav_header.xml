@@ -1,17 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="170dp"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@android:color/black"
-    android:padding="16dp"
-    android:gravity="bottom">
+    android:background="?attr/colorPrimary"
+    android:padding="16dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Settings"
-        android:textColor="@android:color/white"
-        android:textSize="20sp"/>
+        android:textColor="?attr/colorOnPrimary"
+        android:textSize="20sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Dark Mode Toggle Switch -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingVertical="8dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_day"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Dark mode icon"
+            app:tint="?attr/colorOnPrimary" />
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Dark Mode"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="16sp"/>
+        
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/darkModeSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
 
 </LinearLayout>

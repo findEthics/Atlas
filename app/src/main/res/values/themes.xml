@@ -28,4 +28,30 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="Theme.Chatty.Dark" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/dark_primary</item>
+        <item name="colorPrimaryVariant">@color/dark_primary</item>
+        <item name="colorOnPrimary">@color/dark_on_primary</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/dark_secondary</item>
+        <item name="colorSecondaryVariant">@color/dark_secondary</item>
+        <item name="colorOnSecondary">@color/dark_on_secondary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/dark_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <!-- Background color. -->
+        <item name="android:windowBackground">@color/dark_background</item>
+        <!-- Text color. -->
+        <item name="android:textColor">@color/dark_on_background</item>
+        <!-- Button colors -->
+        <item name="colorButtonNormal">@color/dark_primary</item>
+        <item name="android:colorButtonNormal">@color/dark_primary</item>
+        <!-- No animations for better e-ink experience -->
+        <item name="android:windowAnimationStyle">@null</item>
+        <!-- Remove action bar completely for custom implementation -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>

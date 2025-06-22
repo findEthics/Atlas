@@ -1,6 +1,8 @@
 package com.example.chatty
 
+import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.core.content.edit
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +11,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -37,25 +39,36 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navView: NavigationView
     private lateinit var toolbar: Toolbar
     private lateinit var loadingProgressBar: TextView
+    private lateinit var themePrefs: SharedPreferences
+    private lateinit var darkModeSwitch: SwitchCompat
+    private lateinit var customNavToggle: ImageButton
+
+    companion object {
+        private const val THEME_PREFS = "theme_prefs"
+        private const val KEY_DARK_MODE = "dark_mode"
+        private const val KEY_FONT_SIZE = "font_size"
+    }
+    
+    enum class FontSize {
+        SMALL, REGULAR, LARGE
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize theme preferences
+        themePrefs = getSharedPreferences(THEME_PREFS, MODE_PRIVATE)
+        applyTheme()
+        
         setContentView(R.layout.activity_main)
 
         aiClient = AIClient()
         initializeViews()
         setupRecyclerView()
 
-        // Setup navigation drawer
-        val toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
+        // Setup navigation drawer (without automatic toggle)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupClickListeners()
 
@@ -72,6 +85,13 @@ class MainActivity : AppCompatActivity() {
         navView = findViewById(R.id.nav_view)
         toolbar = findViewById(R.id.toolbar)
         loadingProgressBar = findViewById(R.id.loadingProgressBar)
+        
+        // Initialize dark mode switch from navigation header
+        val headerView = navView.getHeaderView(0)
+        darkModeSwitch = headerView.findViewById(R.id.darkModeSwitch)
+        
+        // Initialize custom navigation toggle
+        customNavToggle = findViewById(R.id.customNavToggle)
     }
 
     private fun setupRecyclerView() {
@@ -91,6 +111,15 @@ class MainActivity : AppCompatActivity() {
         resetButton.setOnClickListener {
             resetSession()
         }
+        
+        // Setup custom navigation toggle
+        customNavToggle.setOnClickListener {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
 
         // Handle navigation item clicks
         navView.setNavigationItemSelectedListener { menuItem ->
@@ -100,9 +129,20 @@ class MainActivity : AppCompatActivity() {
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
+                R.id.nav_font_size -> {
+                    showFontSizeDialog()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
                 else -> false
             }
         }
+        
+        // Setup dark mode switch
+        setupDarkModeSwitch()
+        
+        // Apply current font size
+        applyFontSize()
     }
 
     private fun setupModelSwitch() {
@@ -188,7 +228,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateUIWithResponse(query: String, response: String) {
         loadingProgressBar.visibility = View.GONE
         sendButton.isEnabled = true
-        titleText.visibility = View.GONE
+        titleText.visibility = View.VISIBLE
         
         // Update the last message with the response
         if (messages.isNotEmpty()) {
@@ -251,9 +291,115 @@ class MainActivity : AppCompatActivity() {
             val message = messages[position]
             holder.queryText.text = message.query
             holder.responseText.text = message.response
+            
+            // Apply dynamic font sizes
+            holder.queryText.textSize = getQueryTextSize()
+            holder.responseText.textSize = getResponseTextSize()
         }
 
         override fun getItemCount() = messages.size
+    }
+
+    private fun applyTheme() {
+        val isDarkMode = themePrefs.getBoolean(KEY_DARK_MODE, false)
+        if (isDarkMode) {
+            setTheme(R.style.Theme_Chatty_Dark)
+        } else {
+            setTheme(R.style.Theme_Chatty)
+        }
+    }
+
+    private fun setupDarkModeSwitch() {
+        val isDarkMode = themePrefs.getBoolean(KEY_DARK_MODE, false)
+        darkModeSwitch.isChecked = isDarkMode
+        
+        darkModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            themePrefs.edit {
+                putBoolean(KEY_DARK_MODE, isChecked)
+            }
+            // Recreate activity to apply new theme
+            recreate()
+        }
+    }
+
+    private fun showFontSizeDialog() {
+        val currentFontSize = getCurrentFontSize()
+        val fontSizeOptions = arrayOf("Small", "Regular", "Large")
+        val currentSelection = when (currentFontSize) {
+            FontSize.SMALL -> 0
+            FontSize.REGULAR -> 1
+            FontSize.LARGE -> 2
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Font Size")
+            .setSingleChoiceItems(fontSizeOptions, currentSelection) { dialog, which ->
+                val selectedFontSize = when (which) {
+                    0 -> FontSize.SMALL
+                    1 -> FontSize.REGULAR
+                    2 -> FontSize.LARGE
+                    else -> FontSize.REGULAR
+                }
+                saveFontSize(selectedFontSize)
+                applyFontSize()
+                dialog.dismiss()
+                Toast.makeText(this, "Font size updated to ${fontSizeOptions[which]}", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun getCurrentFontSize(): FontSize {
+        val fontSizeName = themePrefs.getString(KEY_FONT_SIZE, FontSize.REGULAR.name)
+        return FontSize.valueOf(fontSizeName ?: FontSize.REGULAR.name)
+    }
+
+    private fun saveFontSize(fontSize: FontSize) {
+        themePrefs.edit {
+            putString(KEY_FONT_SIZE, fontSize.name)
+        }
+    }
+
+    private fun applyFontSize() {
+        val fontSize = getCurrentFontSize()
+        
+        when (fontSize) {
+            FontSize.SMALL -> {
+                titleText.textSize = 14f
+                loadingProgressBar.textSize = 14f
+            }
+            FontSize.REGULAR -> {
+                titleText.textSize = 18f
+                loadingProgressBar.textSize = 18f
+            }
+            FontSize.LARGE -> {
+                titleText.textSize = 22f
+                loadingProgressBar.textSize = 22f
+            }
+        }
+        
+        // Update adapter to refresh message text sizes
+        adapter.notifyItemRangeChanged(0, messages.size)
+    }
+
+    fun getQueryTextSize(): Float {
+        val fontSize = getCurrentFontSize()
+        return when (fontSize) {
+            FontSize.SMALL -> 14f
+            FontSize.REGULAR -> 18f
+            FontSize.LARGE -> 22f
+        }
+    }
+
+    fun getResponseTextSize(): Float {
+        val fontSize = getCurrentFontSize()
+        return when (fontSize) {
+            FontSize.SMALL -> 14f
+            FontSize.REGULAR -> 18f
+            FontSize.LARGE -> 22f
+        }
     }
 }
 
