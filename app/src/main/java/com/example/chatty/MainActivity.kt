@@ -124,11 +124,26 @@ class MainActivity : AppCompatActivity() {
         loadingProgressBar.visibility = View.VISIBLE
         titleText.visibility = View.GONE
         sendButton.isEnabled = false
+        
+        // Immediately display the user question
+        messages.add(Message(query, ""))
+        adapter.notifyItemInserted(messages.size - 1)
+        recyclerView.smoothScrollToPosition(messages.size - 1)
+        queryInput.text.clear()
+        resetButton.visibility = View.VISIBLE
+        
         val apiKey = aiClient.loadApiKey(this, currentModel)
         if (apiKey.isEmpty() && currentModel != AIModel.ATLAS) {
             showApiKeyDialog(currentModel)
             loadingProgressBar.visibility = View.GONE
             sendButton.isEnabled = true
+            // Remove the message with empty response if API key dialog is shown
+            messages.removeAt(messages.size - 1)
+            adapter.notifyItemRemoved(messages.size)
+            if (messages.isEmpty()) {
+                titleText.visibility = View.VISIBLE
+                resetButton.visibility = View.GONE
+            }
         } else {
             println("handleQuery")
             sendQueryToApi(query, apiKey)
@@ -157,6 +172,14 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_SHORT).show()
                     loadingProgressBar.visibility = View.GONE
                     sendButton.isEnabled = true
+                    
+                    // Update the last message with error response
+                    if (messages.isNotEmpty()) {
+                        val lastIndex = messages.size - 1
+                        val query = messages[lastIndex].query
+                        messages[lastIndex] = Message(query, "Error: $errorMsg")
+                        adapter.notifyItemChanged(lastIndex)
+                    }
                 }
             }
         }
@@ -166,11 +189,14 @@ class MainActivity : AppCompatActivity() {
         loadingProgressBar.visibility = View.GONE
         sendButton.isEnabled = true
         titleText.visibility = View.GONE
-        messages.add(Message(query, response))
-        adapter.notifyItemInserted(messages.size - 1)
-        recyclerView.smoothScrollToPosition(messages.size - 1)
-        queryInput.text.clear()
-        resetButton.visibility = View.VISIBLE
+        
+        // Update the last message with the response
+        if (messages.isNotEmpty()) {
+            val lastIndex = messages.size - 1
+            messages[lastIndex] = Message(query, response)
+            adapter.notifyItemChanged(lastIndex)
+            recyclerView.smoothScrollToPosition(lastIndex)
+        }
     }
 
     private fun showApiKeyDialog(model: AIModel) {
@@ -197,8 +223,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun resetSession() {
+        val itemCount = messages.size
         messages.clear()
-        adapter.notifyDataSetChanged()
+        adapter.notifyItemRangeRemoved(0, itemCount)
         titleText.visibility = View.VISIBLE
         resetButton.visibility = View.GONE
         loadingProgressBar.visibility = View.GONE
